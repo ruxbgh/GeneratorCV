@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator CV</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #f0ebe3;
+  --card: #faf8f5;
+  --ink: #1c1917;
+  --mid: #78716c;
+  --accent: #c2410c;
+  --accent2: #ea580c;
+  --border: #e7e0d8;
+  --section-bg: #fff;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 32px 16px 60px;
+  color: var(--ink);
+}
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.header {
+  grid-column: 1/-1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 4px;
+}
+
+.header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.6rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.header .tagline {
+  font-size: 0.8rem;
+  color: var(--mid);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding-bottom: 4px;
+}
+
+/* FORM PANEL */
+.form-panel {
+  background: var(--section-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.section-header {
+  background: var(--ink);
+  color: white;
+  padding: 12px 20px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-header .dot {
+  width: 8px; height: 8px;
+  background: var(--accent2);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.section-body { padding: 20px; }
+
+.field {
+  margin-bottom: 14px;
+}
+
+label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 5px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: #fdfcfb;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  background: white;
+}
+
+textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Dynamic entries */
+.entries-list { display: flex; flex-direction: column; gap: 12px; }
+
+.entry-card {
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  background: #fdfcfb;
+}
+
+.entry-card-header {
+  background: var(--bg);
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mid);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.entry-card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.btn-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--mid);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+.btn-remove:hover { color: var(--accent); }
+
+.btn-add {
+  width: 100%;
+  padding: 9px;
+  border: 1.5px dashed var(--border);
+  border-radius: 3px;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--mid);
+  cursor: pointer;
+  margin-top: 10px;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); background: #fff5f0; }
+
+/* PREVIEW PANEL */
+.preview-panel {
+  background: var(--section-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+
+.preview-area {
+  padding: 24px 20px;
+  min-height: 500px;
+}
+
+/* CV PREVIEW */
+#cvPreview {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8.5px;
+  color: #1c1917;
+  line-height: 1.4;
+}
+
+.cv-header-preview {
+  background: #1c1917;
+  color: white;
+  padding: 16px 18px 14px;
+  margin: -24px -20px 16px;
+}
+
+.cv-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+
+.cv-title {
+  font-size: 9px;
+  color: #ea580c;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.cv-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 7.5px;
+  color: #d6d3d1;
+}
+
+.cv-body { display: grid; grid-template-columns: 100px 1fr; gap: 0; }
+
+.cv-sidebar {
+  background: #f5f0e8;
+  padding: 12px 10px;
+  margin: 0 -20px 0 -20px;
+  padding-left: 20px;
+  padding-right: 10px;
+}
+
+.cv-main { padding: 0 0 0 14px; }
+
+.cv-section-title {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c2410c;
+  border-bottom: 1px solid #e7e0d8;
+  padding-bottom: 3px;
+  margin: 10px 0 6px;
+}
+
+.cv-section-title:first-child { margin-top: 0; }
+
+.cv-item { margin-bottom: 7px; }
+.cv-item-title { font-weight: 600; font-size: 8px; }
+.cv-item-sub { color: #78716c; font-size: 7px; margin-bottom: 2px; }
+.cv-item-desc { font-size: 7px; color: #44403c; }
+
+.cv-skill-bar {
+  height: 3px;
+  background: #e7e0d8;
+  border-radius: 2px;
+  margin: 3px 0 6px;
+  overflow: hidden;
+}
+.cv-skill-fill { height: 100%; background: #c2410c; border-radius: 2px; }
+.cv-skill-name { font-size: 7px; font-weight: 500; }
+
+.cv-lang { display: flex; justify-content: space-between; font-size: 7px; margin-bottom: 3px; }
+.cv-lang span:last-child { color: var(--mid); }
+
+.cv-summary { font-size: 7.5px; color: #44403c; line-height: 1.5; margin-bottom: 8px; }
+
+/* DOWNLOAD BTN */
+.dl-btn {
+  width: calc(100% - 40px);
+  margin: 0 20px 20px;
+  padding: 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dl-btn:hover { background: #9a3412; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(194,65,12,0.3); }
+
+/* Color picker */
+.color-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.color-opt {
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+  flex-shrink: 0;
+}
+.color-opt.active { border-color: var(--ink); transform: scale(1.15); }
+
+.template-row { display: flex; gap: 8px; }
+.tpl-btn {
+  flex: 1; padding: 8px 4px; border: 1.5px solid var(--border);
+  border-radius: 3px; background: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+  color: var(--mid); text-transform: uppercase; letter-spacing: 0.06em;
+  transition: all 0.15s;
+}
+.tpl-btn.active { border-color: var(--accent); color: var(--accent); background: #fff5f0; }
+
+.no-data { color: var(--mid); font-size: 7px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Generator CV</h1>
+    <span class="tagline">Fără cont · Fără API · 100% local</span>
+  </div>
+
+  <!-- LEFT: FORM -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Date personale -->
+    <div class="form-panel">
+      <div class="section-header"><span class="dot"></span>Date personale</div>
+      <div class="section-body">
+        <div class="row2">
+          <div class="field"><label>Prenume</label><input id="f_prenume" oninput="render()" placeholder="Ion"></div>
+          <div class="field"><label>Nume</label><input id="f_nume" oninput="render()" placeholder="Popescu"></div>
+        </div>
+        <div class="field"><label>Titlu / Funcție</label><input id="f_titlu" oninput="render()" placeholder="ex: Manager de proiect"></div>
+        <div class="row2">
+          <div class="field"><label>Email</label><input id="f_email" oninput="render()" placeholder="ion@email.ro"></div>
+          <div class="field"><label>Telefon</label><input id="f_tel" oninput="render()" placeholder="07xx xxx xxx"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Oraș</label><input id="f_oras" oninput="render()" placeholder="București"></div>
+          <div class="field"><label>LinkedIn / Website</label><input id="f_link" oninput="render()" placeholder="linkedin.com/in/..."></div>
+        </div>
+        <div class="field"><label>Profil / Rezumat</label><textarea id="f_summary" oninput="render()" placeholder="Scurtă descriere despre tine și obiectivele tale profesionale..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- Experiență -->
+    <div class="form-panel">
+      <div class="section-header"><span class="dot"></span>Experiență profesională</div>
+      <div class="section-body">
+        <div class="entries-list" id="exp-list"></div>
+        <button class="btn-add" onclick="addEntry('exp')">+ Adaugă experiență</button>
+      </div>
+    </div>
+
+    <!-- Educație -->
+    <div class="form-panel">
+      <div class="section-header"><span class="dot"></span>Educație</div>
+      <div class="section-body">
+        <div class="entries-list" id="edu-list"></div>
+        <button class="btn-add" onclick="addEntry('edu')">+ Adaugă educație</button>
+      </div>
+    </div>
+
+    <!-- Competențe -->
+    <div class="form-panel">
+      <div class="section-header"><span class="dot"></span>Competențe & Limbi</div>
+      <div class="section-body">
+        <div class="field">
+          <label>Competențe (câte una pe rând, opțional nivel 1-5)</label>
+          <textarea id="f_skills" oninput="render()" placeholder="Excel&#10;Python, 4&#10;Management proiecte, 5&#10;Comunicare"></textarea>
+        </div>
+        <div class="field">
+          <label>Limbi străine (format: Limbă, Nivel)</label>
+          <textarea id="f_langs" oninput="render()" placeholder="Engleză, Avansat&#10;Franceză, Mediu"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aspect -->
+    <div class="form-panel">
+      <div class="section-header"><span class="dot"></span>Personalizare</div>
+      <div class="section-body">
+        <div class="field">
+          <label>Culoare accent</label>
+          <div class="color-row">
+            <div class="color-opt active" style="background:#c2410c" data-color="#c2410c" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#1d4ed8" data-color="#1d4ed8" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#15803d" data-color="#15803d" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#7c3aed" data-color="#7c3aed" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#0f766e" data-color="#0f766e" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#be185d" data-color="#be185d" onclick="setColor(this)"></div>
+            <div class="color-opt" style="background:#1c1917" data-color="#1c1917" onclick="setColor(this)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: PREVIEW -->
+  <div class="preview-panel">
+    <div class="section-header"><span class="dot"></span>Previzualizare CV</div>
+    <div class="preview-area">
+      <div id="cvPreview"></div>
+    </div>
+    <button class="dl-btn" onclick="downloadPDF()">⬇ Descarcă PDF</button>
+  </div>
+
+</div>
+
+<script>
+let accentColor = '#c2410c';
+
+const entries = { exp: [], edu: [] };
+let expCount = 0, eduCount = 0;
+
+function addEntry(type) {
+  const id = type + '_' + Date.now();
+  entries[type].push({ id });
+
+  const list = document.getElementById(type + '-list');
+  const card = document.createElement('div');
+  card.className = 'entry-card';
+  card.id = id;
+
+  if (type === 'exp') {
+    card.innerHTML = `
+      <div class="entry-card-header">
+        <span>Experienta #${list.children.length + 1}</span>
+        <button class="btn-remove" onclick="removeEntry('${id}','exp')" title="Sterge">×</button>
+      </div>
+      <div class="entry-card-body">
+        <div class="row2">
+          <div class="field" style="margin:0"><label>Functie / Post</label><input data-f="job" oninput="render()" placeholder="Developer Frontend"></div>
+          <div class="field" style="margin:0"><label>Companie</label><input data-f="company" oninput="render()" placeholder="SC Exemplu SRL"></div>
+        </div>
+        <div class="row2">
+          <div class="field" style="margin:0"><label>Perioada inceput</label><input data-f="start" oninput="render()" placeholder="Ian 2021"></div>
+          <div class="field" style="margin:0"><label>Perioada sfarsit</label><input data-f="end" oninput="render()" placeholder="Prezent"></div>
+        </div>
+        <div class="field" style="margin:0"><label>Descriere / Realizari</label><textarea data-f="desc" oninput="render()" placeholder="Ce ai facut, ce ai realizat..."></textarea></div>
+      </div>`;
+  } else {
+    card.innerHTML = `
+      <div class="entry-card-header">
+        <span>Educatie #${list.children.length + 1}</span>
+        <button class="btn-remove" onclick="removeEntry('${id}','edu')" title="Sterge">×</button>
+      </div>
+      <div class="entry-card-body">
+        <div class="field" style="margin:0"><label>Institutie</label><input data-f="school" oninput="render()" placeholder="Universitatea..."></div>
+        <div class="row2">
+          <div class="field" style="margin:0"><label>Specializare</label><input data-f="degree" oninput="render()" placeholder="Informatica"></div>
+          <div class="field" style="margin:0"><label>Ani</label><input data-f="years" oninput="render()" placeholder="2015 - 2019"></div>
+        </div>
+        <div class="field" style="margin:0"><label>Detalii (optional)</label><input data-f="desc" oninput="render()" placeholder="Media, proiect de licenta etc."></div>
+      </div>`;
+  }
+
+  list.appendChild(card);
+  render();
+}
+
+function removeEntry(id, type) {
+  entries[type] = entries[type].filter(e => e.id !== id);
+  document.getElementById(id).remove();
+  render();
+}
+
+function getEntryData(type) {
+  const list = document.getElementById(type + '-list');
+  return Array.from(list.children).map(card => {
+    const data = {};
+    card.querySelectorAll('[data-f]').forEach(el => { data[el.dataset.f] = el.value.trim(); });
+    return data;
+  });
+}
+
+function parseSkills(raw) {
+  return raw.split('\n').filter(l => l.trim()).map(l => {
+    const parts = l.split(',');
+    const name = parts[0].trim();
+    const level = parseInt(parts[1]) || 3;
+    return { name, level: Math.min(5, Math.max(1, level)) };
+  });
+}
+
+function parseLangs(raw) {
+  return raw.split('\n').filter(l => l.trim()).map(l => {
+    const parts = l.split(',');
+    return { name: parts[0].trim(), level: (parts[1] || '').trim() };
+  });
+}
+
+function setColor(el) {
+  document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  accentColor = el.dataset.color;
+  render();
+}
+
+function render() {
+  const prenume = document.getElementById('f_prenume').value.trim();
+  const nume = document.getElementById('f_nume').value.trim();
+  const titlu = document.getElementById('f_titlu').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+  const tel = document.getElementById('f_tel').value.trim();
+  const oras = document.getElementById('f_oras').value.trim();
+  const link = document.getElementById('f_link').value.trim();
+  const summary = document.getElementById('f_summary').value.trim();
+  const skills = parseSkills(document.getElementById('f_skills').value);
+  const langs = parseLangs(document.getElementById('f_langs').value);
+  const exps = getEntryData('exp');
+  const edus = getEntryData('edu');
+
+  const fullName = (prenume + ' ' + nume).trim() || 'Numele Tău';
+  const contacts = [email, tel, oras, link].filter(Boolean);
+
+  let skillsHtml = skills.length ? skills.map(s => `
+    <div class="cv-skill-name">${esc(s.name)}</div>
+    <div class="cv-skill-bar"><div class="cv-skill-fill" style="width:${s.level * 20}%;background:${accentColor}"></div></div>
+  `).join('') : '<div class="no-data">—</div>';
+
+  let langsHtml = langs.length ? langs.map(l => `
+    <div class="cv-lang"><span>${esc(l.name)}</span><span>${esc(l.level)}</span></div>
+  `).join('') : '<div class="no-data">—</div>';
+
+  let expHtml = exps.length ? exps.map(e => `
+    <div class="cv-item">
+      <div class="cv-item-title">${esc(e.job || '—')}</div>
+      <div class="cv-item-sub">${esc(e.company || '')}${e.start || e.end ? ' · ' + [e.start, e.end].filter(Boolean).join(' – ') : ''}</div>
+      ${e.desc ? `<div class="cv-item-desc">${esc(e.desc)}</div>` : ''}
+    </div>
+  `).join('') : '<div class="no-data">Adauga experienta din formularul din stanga.</div>';
+
+  let eduHtml = edus.length ? edus.map(e => `
+    <div class="cv-item">
+      <div class="cv-item-title">${esc(e.school || '—')}</div>
+      <div class="cv-item-sub">${esc(e.degree || '')}${e.years ? ' · ' + e.years : ''}</div>
+      ${e.desc ? `<div class="cv-item-desc">${esc(e.desc)}</div>` : ''}
+    </div>
+  `).join('') : '<div class="no-data">Adauga educatia din formularul din stanga.</div>';
+
+  document.getElementById('cvPreview').innerHTML = `
+    <div class="cv-header-preview" style="background:#1c1917">
+      <div class="cv-name">${esc(fullName)}</div>
+      ${titlu ? `<div class="cv-title" style="color:${accentColor}">${esc(titlu)}</div>` : ''}
+      <div class="cv-contacts">${contacts.map(c => `<span>${esc(c)}</span>`).join('')}</div>
+    </div>
+    ${summary ? `<div class="cv-summary">${esc(summary)}</div>` : ''}
+    <div class="cv-body">
+      <div class="cv-sidebar">
+        <div class="cv-section-title" style="color:${accentColor}">Competente</div>
+        ${skillsHtml}
+        <div class="cv-section-title" style="color:${accentColor}">Limbi</div>
+        ${langsHtml}
+      </div>
+      <div class="cv-main">
+        <div class="cv-section-title" style="color:${accentColor};border-color:#e7e0d8">Experienta</div>
+        ${expHtml}
+        <div class="cv-section-title" style="color:${accentColor};border-color:#e7e0d8">Educatie</div>
+        ${eduHtml}
+      </div>
+    </div>
+  `;
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// PDF Generation
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ format: 'a4', unit: 'mm' });
+
+  const prenume = document.getElementById('f_prenume').value.trim();
+  const nume = document.getElementById('f_nume').value.trim();
+  const titlu = document.getElementById('f_titlu').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+  const tel = document.getElementById('f_tel').value.trim();
+  const oras = document.getElementById('f_oras').value.trim();
+  const link = document.getElementById('f_link').value.trim();
+  const summary = document.getElementById('f_summary').value.trim();
+  const skills = parseSkills(document.getElementById('f_skills').value);
+  const langs = parseLangs(document.getElementById('f_langs').value);
+  const exps = getEntryData('exp');
+  const edus = getEntryData('edu');
+
+  const fullName = (prenume + ' ' + nume).trim() || 'Curriculum Vitae';
+  const W = 210, H = 297, m = 14;
+  const sideW = 58, mainX = m + sideW + 6, mainW = W - mainX - m;
+  let y = 0;
+
+  const ac = hexToRgb(accentColor);
+
+  // Header background
+  doc.setFillColor(28, 25, 23);
+  doc.rect(0, 0, W, 44, 'F');
+
+  // Name
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(255, 255, 255);
+  doc.text(fullName, m, 18);
+
+  // Title
+  if (titlu) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(ac.r, ac.g, ac.b);
+    doc.text(titlu.toUpperCase(), m, 26);
+  }
+
+  // Contacts
+  const contacts = [email, tel, oras, link].filter(Boolean);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(180, 175, 170);
+  let cx = m;
+  contacts.forEach((c, i) => {
+    doc.text(c, cx, 36);
+    cx += doc.getTextWidth(c) + 10;
+  });
+
+  y = 52;
+
+  // Sidebar background
+  doc.setFillColor(245, 240, 232);
+  doc.rect(m - 2, 44, sideW + 4, H - 44, 'F');
+
+  // Summary
+  if (summary) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(68, 64, 60);
+    const sumLines = doc.splitTextToSize(summary, W - m * 2 - sideW - 10);
+    sumLines.forEach(line => { doc.text(line, mainX, y); y += 4.5; });
+    y += 4;
+  }
+
+  // Section helper
+  function sectionTitle(x, yw, w, text) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(ac.r, ac.g, ac.b);
+    doc.text(text, x, yw);
+    doc.setDrawColor(220, 215, 208);
+    doc.setLineWidth(0.3);
+    doc.line(x, yw + 1, x + w, yw + 1);
+    return yw + 6;
+  }
+
+  function checkPage(cy, needed) {
+    if (cy + needed > H - 10) {
+      doc.addPage();
+      // Re-draw sidebar bg
+      doc.setFillColor(245, 240, 232);
+      doc.rect(m - 2, 10, sideW + 4, H - 10, 'F');
+      return 16;
+    }
+    return cy;
+  }
+
+  // SIDEBAR
+  let sy = 52;
+
+  // Skills
+  sy = sectionTitle(m, sy, sideW, 'COMPETENTE');
+  skills.forEach(s => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(28, 25, 23);
+    doc.text(s.name, m, sy);
+    sy += 3;
+    // Bar background
+    doc.setFillColor(220, 215, 208);
+    doc.rect(m, sy, sideW, 2, 'F');
+    // Bar fill
+    doc.setFillColor(ac.r, ac.g, ac.b);
+    doc.rect(m, sy, sideW * (s.level / 5), 2, 'F');
+    sy += 5;
+  });
+
+  if (!skills.length) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 145, 140);
+    doc.text('—', m, sy); sy += 6;
+  }
+
+  sy += 4;
+  sy = sectionTitle(m, sy, sideW, 'LIMBI STRAINE');
+  langs.forEach(l => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(28, 25, 23);
+    doc.text(l.name, m, sy);
+    doc.setTextColor(120, 113, 108);
+    doc.text(l.level, m + sideW, sy, { align: 'right' });
+    sy += 5;
+  });
+  if (!langs.length) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 145, 140);
+    doc.text('—', m, sy);
+  }
+
+  // MAIN CONTENT
+  y = sectionTitle(mainX, y, mainW, 'EXPERIENTA PROFESIONALA');
+  exps.forEach(e => {
+    y = checkPage(y, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(28, 25, 23);
+    doc.text(e.job || '—', mainX, y);
+    y += 4;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(120, 113, 108);
+    const sub = [e.company, [e.start, e.end].filter(Boolean).join(' – ')].filter(Boolean).join('  ·  ');
+    doc.text(sub, mainX, y); y += 4;
+
+    if (e.desc) {
+      doc.setTextColor(68, 64, 60);
+      const dlines = doc.splitTextToSize(e.desc, mainW);
+      dlines.forEach(dl => { y = checkPage(y, 5); doc.text(dl, mainX, y); y += 4; });
+    }
+    y += 3;
+  });
+
+  if (!exps.length) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7);
+    doc.setTextColor(150, 145, 140);
+    doc.text('—', mainX, y); y += 8;
+  }
+
+  y += 2;
+  y = sectionTitle(mainX, y, mainW, 'EDUCATIE');
+  edus.forEach(e => {
+    y = checkPage(y, 16);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(28, 25, 23);
+    doc.text(e.school || '—', mainX, y); y += 4;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(120, 113, 108);
+    const sub2 = [e.degree, e.years].filter(Boolean).join('  ·  ');
+    if (sub2) { doc.text(sub2, mainX, y); y += 4; }
+    if (e.desc) {
+      doc.setTextColor(68, 64, 60);
+      doc.text(e.desc, mainX, y); y += 4;
+    }
+    y += 2;
+  });
+
+  // Save
+  const safeName = fullName.replace(/[^a-zA-Z ]/g, '').replace(/ /g, '_').toLowerCase();
+  doc.save('CV_' + safeName + '.pdf');
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return { r, g, b };
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
